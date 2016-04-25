@@ -1,0 +1,223 @@
+\documentclass[12pt,a4paper]{scrartcl}
+
+% die folgenden Packete erlauben den Gebrauch von Umlauten und ß
+%
+%  German quotes
+%
+\newcommand{\qq}[1]{\glqq{}#1\grqq{}}
+%
+%  absolute value, norms
+%
+\newcommand{\abs}[1]{\left | #1 \right |}
+\newcommand{\norm}[1]{\left \| #1 \right \|}
+\newcommand{\twonorm}[1]{\left \| #1 \right \|_2}
+\newcommand{\supnorm}[1]{\left \| #1 \right \|_\infty}
+%
+%
+\newcommand{\hhalbe}{ \frac{h}{2} }
+\newcommand{\hviertel}{ \frac{h}{4} }
+%
+% in der Latex Datei
+%\usepackage[utf8]{inputenc}
+\usepackage[latin1]{inputenc} %  Alternativ unter Windows
+\usepackage[T1]{fontenc}
+% \usepackage[ngerman]{babel}
+% This time i write in english
+\usepackage[english]{babel}
+
+\hyphenation{po-si-tive}
+\hyphenation{equi-va-lent}
+\hyphenation{ne-ces-sary}
+\hyphenation{pro-ba-bi-li-ty}
+
+\usepackage{pgfplots}
+
+%\usepackage[pdftex]{graphicx}
+\usepackage{latexsym}
+\usepackage{mathtools}
+\usepackage{amssymb,amsthm}
+%\usepackage{amsmath,amssymb,amsthm}
+%\allowdisplaybreaks
+
+\usepackage{enumerate}
+\usepackage{multirow}
+
+%\usepackage[Algorithmus]{algorithm}
+%\usepackage{algpseudocode}
+
+%\restylefloat{figure}		% ermoeglicht option [H] (only HERE!)
+\usepackage{float}
+\usepackage{subfigure}
+%\usepackage{subcaption}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows}
+
+% useful packages
+\usepackage[linktoc=section]{hyperref}
+\usepackage[colorinlistoftodos, disable]{todonotes}	% if you want to disable all todos, use the option 'disable'!
+
+%\floatstyle{plain}
+
+% Abstand obere Blattkante zur Kopfzeile ist 2.54cm - 15mm
+\setlength{\topmargin}{-15mm}
+
+
+% some abbreviations
+\newcommand{\ul}[1]{\underline{#1}}
+\newcommand{\ol}[1]{\overline{#1}}
+
+\newcommand{\C}{\mathbb{C}} % komplexe
+\newcommand{\K}{\mathbb{K}} % bel. Koerper
+\newcommand{\R}{\mathbb{R}} % reelle
+\newcommand{\Q}{\mathbb{Q}} % rationale
+\newcommand{\Z}{\mathbb{Z}} % ganze
+\newcommand{\N}{\mathbb{N}} % natuerliche
+
+\newcommand{\PP}{\mathbb{P}} % Wahrscheinlichkeitsmaß P
+\newcommand{\E}{\mathbb{E}} % Erwartungswert
+
+\newcommand{\mc}[1]{\mathcal{#1}}	% kaligraphisch shortcut
+
+\newcommand{\dx}{\,\mathrm{d}x}
+\newcommand{\da}{\,\mathrm{d}a}
+\newcommand{\ds}{\,\mathrm{d}s}
+\newcommand{\dt}{\,\mathrm{d}t}
+
+\newcommand{\rhoIn}{\rho_{\text{in}}}
+\newcommand{\GammaIn}{\Gamma_{\text{in}}}
+
+\newcommand{\FigureHSpace}{\hspace*{-1.0em}}
+
+%% genetic Algorithms - Start
+\newcommand{\ff}{\mathit{ff}}
+%% genetic Algorithms - Ende
+%
+%% Mathematische Operatoren
+\DeclareMathOperator{\DIV}{div}
+\DeclareMathOperator{\SPAN}{span}
+\DeclareMathOperator{\SUPP}{supp}
+\DeclareMathOperator{\ID}{id}
+\DeclareMathOperator{\ROUND}{round}
+%
+
+% Change \part header.
+\usepackage{titlesec}
+%\usepackage{titletoc}
+%\renewcommand{\part}[1]{\paragraph{#1}}
+%\addto\captionsenglish{\renewcommand{\partname}{Sthg else}}
+\titleformat{\part}[hang]{\bfseries\Huge}{\thepart.}{0.5em}{}
+\renewcommand{\thesection}{\arabic{section}.}
+\renewcommand{\thesubsection}{\arabic{section}.\arabic{subsection}.}
+\renewcommand{\thesubsubsection}{\arabic{section}.\arabic{subsection}.\arabic{subsubsection}.}
+
+% Change equation labelling to default.
+\renewcommand\theequation{\thesection\arabic{equation}}
+
+
+%% Start section numbering new after a new part
+\makeatletter
+\@addtoreset{section}{part}
+\makeatother
+
+
+\begin{document}
+
+% Keine Seitenzahlen im Vorspann
+  \pagestyle{empty}
+
+  % Titelblatt der Arbeit
+  \begin{titlepage}
+
+%    \includegraphics[scale=0.45]{kit-logo.jpg} \hfill \includegraphics[scale=0.15]{mathe-logo.jpg}
+    \vspace*{2cm}
+
+	 \begin{center} \large
+
+    Lecture Notes\\
+    %---\\
+    %Übungsblatt 1, 2
+    \vspace*{2cm}
+
+    {\huge \ Artificial Intelligence}
+    \vspace*{2.0cm}
+
+    Michael Maier \\
+    \vspace*{1.5cm}
+
+    Wintersemester 2015/2016
+    \vspace*{2.8cm}
+
+
+    %Betreuung: Johannes Ernesti und Ramin Shirazi-Nejad \\[1cm]
+    %Fakultät für Mathematik \\[1cm]
+	%	Karlsruher Institut für Technologie
+	Lecturer: Dr Piotr Prokopowicz \\[1cm]
+   Faculty of Mathematics, Physics \& Technical Sciences \\[1cm]
+		Kazimierz Wielki University
+
+ 	\end{center}
+ \end{titlepage}
+
+
+% Inhaltsverzeichnis
+\tableofcontents
+
+
+  % Ab sofort Seitenzahlen in der Kopfzeile anzeigen
+  \pagestyle{headings}
+
+\newpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%% CONTENT %%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%% Fuzzy Logic %%%%%%%%%%%%
+\part{Fuzzy Systems}
+\input{fuzzySystems.tex}
+\newpage
+
+
+%%%%%%%%%%% Neural Networks %%%%%%%%%%%%
+\part{Artificial Neural Networks}
+\input{neuralNetworks.tex}
+\newpage
+
+
+%%%%%%%%%%% Genetic Algorithms %%%%%%%%%%%%
+\part{Genetic Algorithms}
+\input{geneticAlgorithms.tex}
+\newpage
+
+
+%%%%% Content - END %%%%%
+
+% Literaturverzeichnis
+\newpage
+
+\todo[inline,color=green]{Add chapters!!}
+
+% "Gorzal:2005" is an example how much space the displayed "[Gorzal:2002]" will need; it is important for a second line and sets the mark, where the describing text will start. (so choose the longest [XXX]!)
+
+\begin{thebibliography}{Waszczyszyn:2005}
+	%%% Fuzzy Systems %%%
+	% Literaturbeispiel: Buch
+	\bibitem[Buckley:2005]{SimulatingFuzzySystems} James J. Buckley: \emph{Simulating Fuzzy Systems}. Springer-Verlag, 2005.
+	\bibitem[Buckley:2002]{IntrFuzzyLogic} James J. Buckley, Esfandiar Eslami: \emph{An Introduction to Fuzzy Logic and Fuzzy Sets}. Springer-Verlag, 2002.
+	\bibitem[Driankov:1993]{IntrFuzzyControl} Dimiter Driankov, Hans Hellendoom, Michael Reinfrank: \emph{An Introduction to Fuzzy Control}. Springer-Verlag, 1993.
+	\bibitem[Piegat:2001]{FuzzyModelControl} Andrzej Piegat: \emph{Fuzzy Modeling and Control}. Springer-Verlag, 2001.
+
+
+	%%% Neuronal Networks %%%
+	\bibitem[Waszczyszyn:1999]{NNAnalDesStruct} Z. Waszczyszyn: \emph{Neural Networks in the analysis and design of structures}. Springer-Verlag, 1999.
+
+	%%% Genetic Algorithms %%%
+	\bibitem[Gorzal:2002]{CompIntSysAndApp} Marian B. Gorza\l czany:  \emph{Computational Intelligence Systems and Application}. Springer-Verlag, 2002.
+	%% TODO: Add chapters!!
+	\bibitem[Waszczyszyn:1999]{EinfAstroPhys} Z. Waszczyszyn: \emph{Neural Networks in the analysis and design of structures}. Springer-Verlag, 1999.
+\end{thebibliography}
+
+
+\end{document}

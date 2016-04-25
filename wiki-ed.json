@@ -1,0 +1,29 @@
+{
+  "version": "1.0.0",
+  "authors": [{
+    "natural_name": "Michael Maier",
+    "email": "michaelmaier@hotmail.de"
+  }],
+  "description": {
+    "short": {
+      "en": "Lecture notes for Artificial Intelligence."
+    },
+    "long": {
+      "en": "Lecture notes for Artificial Intelligence. It describes basic principles of Fuzzy Systems, Artificial Neural Networks and Genetic Algorithms."
+    }
+  },
+  "license": "CC BY-SA 4.0",
+  "language": "en",
+  "dependencies": [
+    "set notation",
+    "Set (mathematics)"
+  ],
+  "introduces": [
+    "fuzzy set",
+    "linguistic variable",
+    "physical domain",
+    "universe of disclosure",
+    "semantic function",
+    "artificial neural network",
+  ]
+}

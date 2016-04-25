@@ -1,0 +1,232 @@
+
+%%%%% Content %%%%%
+
+\todo[inline,color=green]{It should include a general representation of problem with gens defined with use of the binary code, description of the basic steps in GA, and also its purpose and realisation}
+Genetic Algorithms have the aim of finding the optimal (global) solution in a search space (given by parameter restrictions).\\
+To achieve this, they operate on genetic structures called \emph{chromosomes}. One chromosome represents a point in the search space and is associated with a so called \qq{fitness} value, which measures the performance of the point for the given problem.\\
+By using genetic operations like crossover and mutation, a genetic algorithm builds new generations and thus improves the performance of the whole population (set of chromosomes/points) instead of only the performance of an individual point. Analogous to the Darwinian model of \qq{survival of the fittest}, the individuals with a higher fitness value are more likely to reproduce than the ones with a lower fitness value. In summary, a genetic algorithm represents a model of evolution by random mutation and natural selection\todo{quote!}{}.\\
+By improving the whole set of chromosomes this methods are more likely to find the global optimum.
+
+
+%%% §1 %%%
+\section{Implementation}
+As described above, there are a few main features of a genetic algorithm that should be implemented properly:
+\begin{itemize}
+\item encoding and decoding schemes: for the representation of the parameters in the chromosomes,
+\item fitness evaluations: fitness function that applies a fitness value to every point/chromosom in the set/population,
+\item selection mechanism: selects the chromosomes which will build the parental set of chromosomes for the next population,
+\item crossover operators: simulate a random crossover mechanism for the chromosomes,
+\item mutation operators: simulate a random mutation in the chromosomes.
+\end{itemize}
+
+%%% §1.1 %%%
+\subsection{Encoding and Decoding Schemes}
+The aim of the encoding technique is to translate the original problem into a format that is fitting to genetic computations by transforming the parameters of an optimization problem into finite-length string representations. Therefore by developing an en- and decoding schema, you should also consider the later executed genetic operations (crossover and mutation).\\
+In this part we only present the \emph{binary encoding}, since it has been shown optimal. \todo{cite!}{}
+
+\todo[inline]{two fundamental guidelines}
+
+\subsubsection*{Concatenated, multiparameter, mapped, fixed-point en- and decoding} \label{sec:binaryEnc}
+Let us assume we have $n$ parameter.\\
+
+\textbf{Encoding:}\\
+For every parameter $x_i,\,i\in\{1,\ldots,n\}$, we know the range $[x_{i,min},x_{i,max}]\subset\R$ and precision $prec_i\in\N$ (the number of digits after the decimal point). Now we can calculate the needed length of the string representation by the following formula:
+\begin{align} \label{eq:Strlength}
+ l_i = \min\{l: (x_{i,max}-x_{i,min})\cdot 10^{prec_i} \leq 2^l-1\}
+\end{align}
+To obtain the binary string representation \textbf{b} of a value $x_i^0 \in [x_{i,min},x_{i,max}]$ we first calculate the decimal value $decimal(\textbf{b})$ of the bitstring with the given precision $prec_i$/length $l_i$:
+\[ decimal(\textbf{b})=(x_i^0 - x_{i,min}) \frac{2^{l_i}-1}{x_{i,max}-x_{i,min}} \]
+By transforming this decimal value $decimal(\textbf{b})$ in binary representation we obtain our bitstring representation $\textbf{b}=enc(x_i^0)$:
+\begin{align*}
+\textbf{b} = enc(x_i^0) &= \left(\, \ROUND\left( decimal(\textbf{b}) \right)\, \right)_2 \\
+ &= \left(\, \ROUND\left( (x_i^0 - x_{i,min}) \frac{2^{l_i}-1}{x_{i,max}-x_{i,min}} \right)\, \right)_2
+\end{align*}
+For example we have a parameter $x_1\in[-5,7]$ with precision $prec_1=2$ (means 2 digits after the decimal point). Now we want to encode the value $x_1^0=-4.38$ as a bit string.\\
+We calculate the length and the decimal value of the bit string:
+\begin{align*}
+l_1 &= \min\{l: (7+5)\cdot 10^2 \leq 2^l-1\} = \min\{l: 12\cdot 100 \leq 2^l-1\} = 11
+\end{align*}
+\[ decimal(enc(x_1^0)) = (-4.38 + 5)\cdot\frac{2^{11}-1}{7+5} = 0.62\cdot\frac{2047}{12} \approx 106 \]
+Therefore we obtain the following result:
+\[ enc(x_1^0) = 106_2 = 000\,0110\,1010 \]
+
+\textbf{Decoding:}\\
+Now we want to calculate the parameter value of a respective bitstring. For the parameter $x_i$ we know the underlying interval $[x_{i,min},x_{i,max}]$ and the length $l_i$ of the bitstring representations. We assume to have an encoded value $enc(x_i)\in[0, 2^{l_i}-1]$. This encoded value is, as above, linearly mapped in the given interval $[x_{i,min},x_{i,max}]$.\\
+Therefore for a binary string $\textbf{b}=\langle b_{l_i-1}b_{l_i-2}\ldots b_1b_0 \rangle_2$, which represents a real value $x_i^0$ of the parameter $x_i$, we obtain the following decoding formula (compare \eqref{eq:Strlength}):
+\[ x_i^0 = dec(\textbf{b}) = x_{i,min} + decimal(\textbf{b})\cdot\frac{x_{i,max}-x_{i,min}}{2^{l_i}-1}, \]
+where $decimal(\textbf{b})$ is the decimal value of the binary string $\textbf{b}$.
+
+We can also derive the precision $prec_i$  of the parameter $x_i$:
+\[ prec_i = \left[ \log_{10}\left( \frac{2^{l_i}-1}{x_{i,max}-x_{i,min}} \right) \right], \]
+where $[\cdot]$ are the gau\ss-brackets, which means we are rounding to the next lowest integer.
+
+A multiparameter encoding scheme is now obtained by simply concatenating the single-parameter codes. Each subcode has its own length $l_i$ and range $[x_{i,min}, x_{i,max}]$.
+
+
+%%% §1.2 %%%
+\subsection{Fitness Evaluation}
+After encoding the parameters of the optimization problem the next step is the calculation of the fitness values for each chromosome.\\
+Herefore we introduce a fitness function $\ff$, that operates on binary strings and is equivalent to a function $f$ that operates on the real value $x$, represented by the string $\textbf{b}$:
+\[ \ff(\textbf{b})=f(x). \]
+The fitness function is a model for the role of the influence of the environment in the natural evolution. The produced output, the \qq{measure of fitness}, is used when the parents for the next generation are selected.\\
+Since mostly positive fitness values are needed, there are often one or more mappings from the underlying cost function of the optimization problem to a fitness function necessary.\\
+
+\subsubsection*{Examples}
+In a \emph{minimization problem} the task is to minimize the cost function $Q(x)$. Then we can use the following cost-to-fitness-transformation:
+\[ \ff(\textbf{b}) = f(x) = \begin{cases}
+C_{max}-Q(x),  &\text{for } Q(x)<C_{max}, \\
+0,					&\text{otherwise}
+\end{cases},  \]
+where $C_{max}$ is a selected constant, for example the largest value of $Q$ in the current population or from the last few generations.
+
+For a \emph{maximization problem} the used fitness function is ofttimes the original cost function $Q(x)$.
+
+Another possibility is to sort the chromosomes and take the number in the ranking as their fitness value. In this case, the fitness functions don't have to be accurate as long as they provide the correct ranking of the chromosomes.
+
+
+%%% §1.3 %%%
+\subsection{Selection mechanism}
+In natural selection, the \qq{survival of the fittest} is the mechanism with which the new population will be created. The analogous part in the generic algorithms is the selection mechanism which selects (on base of the fitness value) which chromosomes will participate in the creation of the new population, so they will be \qq{parent chromosomes}.\\
+The selection probability of a chromosome to be chosen is (normally) proportional to their fitness value. %One technique is the so called \emph{roulette-wheel parent selection}, which is presented now.
+
+\subsubsection{Roulette-wheel \& Ranking selection}
+The fitness values are assumed to be positive, if not, we have to apply a convenient mapping.\\
+Let $pop\_size$ describe the number of chromosomes in the population (population size) and $i$ be an index to identify every chromosome. First we calculate the probabilities of selection:
+\begin{itemize}
+\item Calculation of the fitness values $\ff(\textbf{b}_i)$ for all chromosomes.
+\item Computation of the total fitness of the population:
+	\[ F = \sum_{i=1}^{pop\_size}\ff(\textbf{b}_i) \]
+\item Calculation of the selection probability $p_i$ for all chromosomes:
+	\[ p_i = \frac{\ff(\textbf{b}_i)}{F} \]
+\item Computation of the cumulative probability $q_i$ for all chromosomes:
+	\[ q_i = \sum_{j=1}^i p_j  \]
+\end{itemize}
+and afterwards we let our roulette wheel spin. It simulates a roulette wheel where every chromosome has a box with a box size proportional to the fitness value. Now we spin our wheel $pop\_size$ times and choose one parent chromosome each time:
+\begin{itemize}
+\item Generation of a random (float) number $r\in[0,1]$.
+\item Set $q_0:=0$ and select the $k$-th chromosome, which fulfills:
+	\[ q_{k-1} < r \leq q_k, \qquad \text{where } k\in\{1,\ldots,pop\_size\} \]
+\end{itemize}
+Clearly some of the chromosomes can be selected more than one time, so the chromosomes with higher fitness get more copies (probably), average fitness chromosomes stay even and the ones with lesser fitness die off after a few generations.\\
+One disadvantage of this approach is the (small) probability that the best chromosome may not be selected, what would cause a stochastic error. This is for example corrected in the \emph{elitist strategy}, where the best chromosome of each generation is copied to the succeeding generation before performing the roulette wheel strategie. But this approach improves the local search at the expense of a global search since it increases the speed of domination of the population by the best chromosome. On the other side, it appears to improve the performance of genetic algorithms.\\
+If the best chromosome has a much higher fitness than all the others, the parental chromosomes are mostly a copy of the best one. To handle this problem the chromosomes can be sorted, for example on the basis of their fitness values and instead of their fitness values their number in the ranking is used for the random wheel probability calculation. This approach is called \emph{ranking selection}.
+
+
+\subsubsection{Tournament selection}
+In the tournament selection mechanism several \qq{tournaments} of selected size $size\_t$, for example $pop\_size$, are being simulated. The chromosomes which are taking part in a tournament are selected randomly.\\
+There are different possibilities of the tournament selection mechanism:
+\begin{itemize}
+\item \qq{One-on-one}: We have one chromosome against another. With a specified probability $p_t$ the chromosome with higher fitness \qq{wins} and is being selected. In the other case the chromosome with lower fitness is selected as winner. Normally $p_t$ is bigger than 0.5 to favour the chromosomes with higher fitness.\\
+A tournament mostly has more than one level, so the winner of all tournament rounds is chosen as one parent. Therefore the bigger the tournament, the higher the probability that the weaker chromosomes are not getting selected. Normally there are as many tournaments simulated as there will be parental chromosomes (since there will be only one winning chromosome per tournament).
+\item \qq{Everyone fights everyone}: In this variant in the set of the $size_t$ randomly chosen chromosomes the one with the best fitness is being chosen as a parent. Again there will be as many tournaments as there will be parents.
+\end{itemize}
+
+
+%%% §1.4 %%%
+\subsection{Crossover operation}
+In this part the chromosomes of the new population will be created.\\
+Assume, two parents always have two children. If other, we just have to adapt the size of the parental set of chromosomes and the crossover mechanism.\\
+In nature, the new chromosomes inherit genes from both parents, what is achieved by crossover, meaning to exchange parts of the chromosomes between the parents. This can be a \qq{one-point crossover}, where all data following the \qq{crossover point} is exchanged, or \qq{n-point crossover}, where the parts between the crossover points are exchanged. But empirical studies have shown that multiple-point crossover may degrade the perfomance of genetic algorithms.
+
+The occurring of a crossover is defined by a \emph{crossover probability} $p_c$, which determines the expected number $p_c\cdot pop\_size$ of chromosomes which will undergo the crossover operation.\\
+In applications, $p_c$ is usually between $0.6$ and $1.0$.
+
+\subsubsection*{Crossover procedure}
+For every chromosome in the new population the following steps will be executed:
+\begin{itemize}
+\item Generation of a random (float) number $r\in[0,1]$.
+\item If $r<p_c$, then the chromosome will be selected for crossover.
+\end{itemize}
+After the selection of all \qq{crossover-chromosomes}, they will be mated randomly and for each pair the crossover operation is performed.\\
+All chromosomes have the same length $l=\sum\limits_{j=1}^{param\_size} l_j$, where $l_j$ is the length of the bit representation of the $j$-th parameter and $param\_size$ is the number of parameters.
+
+In case of the \emph{one-point crossover}, for each pair a random integer number $pos\in\{1,\ldots,l-1\}$ will be generated and the parts $\langle b_{pos+1}\ldots b_l \rangle$ and $\langle c_{pos+1}\ldots c_l \rangle$ of two parental chromosomes $\langle b_1\ldots b_{pos}b_{pos+1}\ldots b_l \rangle$ and $\langle c_1\ldots c_{pos}c_{pos+1}\ldots c_l \rangle$ will get exchanged. Now the new chromosomes
+\begin{align*}
+&\langle b_1\ldots b_{pos}c_{pos+1}\ldots c_l \rangle \quad \text{and} \\
+&\langle c_1\ldots c_{pos}b_{pos+1}\ldots b_l \rangle
+\end{align*}
+will be stored in the population instead of the parental ones.
+
+
+%%% §1.5 %%%
+\subsection{Mutation operation}
+With the crossover operation only an improvement of the current gene potential is possible. But sometimes the population does not (yet) contain all the information to solve the problem optimaly, so crossover alone can't produce a satisfactory solution. Therefore as a source of spontaneously generated new properties (defined for example by bits), mutation is needed and applied with a (low) probability $p_m$. This probability defines the totally expected number $p_m\cdot l\cdot pop\_size$ (where $l$ is the number of bits in a chromosome) of mutated bits and is usually chosen between $0.001$ and $0.01$.\\
+In binary representation (see \ref{sec:binaryEnc}), a mutation is a change from $0$ to $1$ or vice versa.
+
+\subsubsection*{Mutation procedure}
+After the crossover operations, the following procedure is executed for every bit in every chromosome.
+\begin{itemize}
+\item Generation of a random (float) number $r\in[0,1]$.
+\item If $r<p_m$, then the bit will be mutated.
+\end{itemize}
+If the mutation rate $p_m$ is too high ($>0.1$), the genetic algorithm will become similar to a random search technique, therefore $p_m$ is normally kept rather low.
+
+
+%%% §1.6 %%%
+\subsection{Summary}
+After presenting the main features of a generic algorithm, we can present the basic steps of a genetic algorithm:
+\begin{enumerate}[1.]
+\item Initialization of the population of $pop\_size$ chromosomes with binary values, which are randomly generated.
+\item Calculation of the fitness value for every chromosome.
+\item Creation of a new population:
+	\begin{enumerate}[a)]
+	\item Selection of a parental population of $pop\_size$ chromosomes (the new generation; it will get changed in Step b) and c))
+	\item Crossover operations in the parental population with probability $p_c$.
+	\item Mutation operations in the crossovered population with probability $p_m$.
+	\end{enumerate}
+\item Calculation of the fitness value for every chromosome.
+\item If STOPPING\_CRITERIA is fulfilled, then STOP and return the best chromosome (point), otherwise go to step 3.
+\end{enumerate}
+In the initialization part we should also choose an appropriate population size: the more chromosomes are used, the more memory is needed but if on the other hand too less chromosomes are used, the search space is not filled out properly and it's less likely to find a satisfactory solution.\\
+The algorithm will stop if we found a solution that is probably optimal, so for example if there is no significant change between the fitness value of the best chromosome of the last and the newest population. Another approach could be to define a fixed amount of population creations. The STOPPING\_CRITERIA can also be a mix or some similar criteria of both proposed possiblities.\\
+
+By changing the parameters, a genetic algorithm can be tuned to nearly every grade between \emph{exploration} (looking for new paths that are unknown so far) and \emph{exploitation} (using the information about good solutions so far and search in their neighbourhood). As random search relies completely on exploration and \qq{hill climbing} fully on exploitation, a genetic algorithm can be tuned to vary between random search and hill climbing.\\
+This can be achieved by modifying these parameters:
+\begin{itemize}
+\item mutation probability: mutation encourages exploration, therefore higher values means more exploration, lower values decreases exploration.
+\item elitist strategy: promotes exploitation, because it supports the domination of the (locally) best chromosome(s).
+\end{itemize}
+
+In summary we can find the following properties of genetic algorithms:
+%% Change the label of itemize
+\renewcommand{\labelitemi}{-}
+%%
+\subsubsection*{Advantages:}
+\begin{itemize}
+\item The only requirement for the fitness function is the ability to estimate a value for every chromosome (therefore nearly any kind of fitness function (continous, step function,$\ldots$) can be used (and optimized!)).
+\item In a chromosome any information can be encoded, therefore it is also possible to generate for example an \emph{evolving neural network} by encoding the structure and parameters of an artificial neural network in a single chromosome).
+\end{itemize}
+
+\subsubsection*{Disadvantages:}
+\begin{itemize}
+\item Usually genetic algorithms take a long time to converge.
+\item There's no guarantee that the obtained solution is optimal or even close to an optimal one.
+\end{itemize}
+%% Undo the changes on the label of itemize
+\renewcommand{\labelitemi}{$\bullet$}
+%%
+
+
+%%% §2 %%%
+\section{Analysis of a genetic algorithm}
+For the analysis of the behaviour of a genetic algorithm, e.g. to find out, for which \qq{kind} of problems or rather solutions the genetic algorithm is fitting, we use the concept of a \qq{schema}.\\
+A \emph{schema} is a similarity template for some chromosomes, or better, it is a representation of a set of similar chromosomes. For example the schema $(*11{*}0)$ contains the chromosomes $(01100), (01110), (11100)$ and $(11110)$. So in this case, the chromosomes with $1'$s at the 2nd and 3rd position and a $0$ in the 5th position are similar and described by the schema $S_1=(*11{*}0)$. Usually $*$ is used as a place holder for $1$ or $0$.\\
+There are two characteristics of a schema $S$:
+\begin{itemize}
+\item the order $o(S)$, what is simply the amount of fixed digits; in our example: \mbox{$o(S_1)=3$},
+\item the length $\delta(S)$, which describes the distance between the first and the last fixed digit position; again for our example: $\delta(S_1)=5-2=3$.
+\end{itemize}
+As the genetic algorithm processes now all the individual chromosomes, there is a parallel processing of the chromosomes described by the schemata, what is called \emph{implicit parallelism}.\\
+One special kind of schemata are \emph{building blocks}. These are schemata with
+\begin{itemize}
+\item fitness higher than average,
+\item short length,
+\item low order, so less fixed positions.
+\end{itemize}
+Because of having higher fitness values than average the solution will probably be a chrosomome from a building block schema.\\
+They have automatically increasing numbers in subsequent generations, since the order and the length of these schematas are preserved. This makes it easier to generalize, for which applications the given genetic algorithm can be used for.\\
+Therefore, to find an appropriate genetic algorithm for a given problem we should consider an encoding method such that short, low-order schemata exist that are relevant to the underlying problem and can be distinguished from unrelated ones. This is called \emph{selection of meaningful building blocks}.\\
+Another fundamental guideline in choosing the encoding method is \emph{selection of minimal alphabets}. To concentrate on the important data of the problem and improve the finding of an optimal solution, it states that we should use the smallest (possible) alphabet that permits a natural expression of the underlying problem.
+
+
+%%%%% Content - END %%%%%
